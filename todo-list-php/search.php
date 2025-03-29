@@ -5,7 +5,8 @@
     }
 
     $provider = $_POST["provider"];
-    $terms = $_POST["terms"];
+    require_once 'validateInput.php';
+    $terms = sanitizeAndvalidateInput($_POST["terms"]);
     $userid = $_POST["userid"];
     
    // SSRF Protection: Whitelist allowed providers

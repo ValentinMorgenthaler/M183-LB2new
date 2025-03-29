@@ -13,14 +13,22 @@ $id = 0;
 $roleid = 0;
 $root = realpath($_SERVER["DOCUMENT_ROOT"]);
 require_once "$root/fw/db.php";
-if (isset($_COOKIE['userid'])) {
-    $id = $_COOKIE['userid'];
-    $stmt = executeStatement("select users.id userid, roles.id roleid, roles.title rolename from users inner join permissions on users.id = permissions.userid inner join roles on permissions.roleID = roles.id where userid = $id");
-    if ($stmt->num_rows > 0) {
-        $stmt->bind_result($db_userid, $db_roleid, $db_rolename);
-        $stmt->fetch();
+
+if (isset($_COOKIE['userid']) && is_numeric($_COOKIE['userid'])) {
+    $id = (int) $_COOKIE['userid'];
+    $conn = getConnection();
+    $stmt = $conn->prepare("SELECT users.id, roles.id, roles.title FROM users 
+                            INNER JOIN permissions ON users.id = permissions.userid 
+                            INNER JOIN roles ON permissions.roleID = roles.id 
+                            WHERE users.id = ?");
+    $stmt->bind_param("i", $id);
+    $stmt->execute();
+    $stmt->bind_result($db_userid, $db_roleid, $db_rolename);
+
+    if ($stmt->fetch()) {
         $roleid = $db_roleid;
     }
+    $stmt->close();
 }
 ?>
 <!DOCTYPE html>
@@ -36,7 +44,7 @@ if (isset($_COOKIE['userid'])) {
 <body>
     <header>
         <div>This is the secure m183 test app</div>
-        <?php  if (isset($_COOKIE['userid'])) { ?>
+        <?php if ($id > 0) { ?>
         <nav>
             <ul>
                 <li><a href="/">Tasks</a></li>

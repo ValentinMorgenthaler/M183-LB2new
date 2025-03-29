@@ -19,7 +19,7 @@
     }
 
     $taskid = "";
-    require_once 'fw/db.php';
+    $userid = $_COOKIE['userid'];
 
     // Validate CSRF token
     if (isset($_POST['csrf_token']) && !validateCSRFToken($_POST['csrf_token'])) {
@@ -30,7 +30,12 @@
 
     if (isset($_POST['id']) && strlen($_POST['id']) != 0){
         $taskid = $_POST["id"];
-        $stmt = executeStatement("select ID, title, state, userID from tasks where ID = $taskid");
+        require_once 'fw/db.php';
+        $conn = getConnection();
+        $stmt = $conn->prepare("select ID, title, state, userID from tasks where ID = ? AND userID = ?");
+        $stmt->bind_param("ii", $taskid, $userid);
+        $stmt->execute();
+        $stmt->store_result();
         // New Authorization Check
         if ($stmt->num_rows > 0) {
             $stmt->bind_result($db_id, $db_title, $db_state, $owner_id);
@@ -48,15 +53,24 @@
   
     require_once 'fw/header.php';
     if (isset($_POST['title']) && isset($_POST['state'])){
+        require_once 'validateInput.php';
+        $title = sanitizeAndvalidateInput($_POST['title']);
         $state = $_POST['state'];
-        $title = $_POST['title'];
-        $userid = $_COOKIE['userid'];  
+        $userid = $_COOKIE['userid'];
 
         if ($taskid == ""){
-            $stmt = executeStatement("insert into tasks (title, state, userID) values ('$title', '$state', '$userid')");
+            $conn = getConnection();
+            $stmt = $conn->prepare("INSERT INTO tasks (title, state, userID) VALUES (?, ?, ?)");
+            $stmt->bind_param("ssi", $title, $state, $userid);
+            $stmt->execute();
+            $stmt->store_result();
         }
         else {
-            $stmt = executeStatement("update tasks set title = '$title', state = '$state' where ID = $taskid");
+            $conn = getConnection();
+            $stmt = $conn->prepare("UPDATE tasks SET title = ?, state = ? WHERE ID = ?  AND userID = ?");
+            $stmt->bind_param("ssii", $title, $state, $taskid, $userid);
+            $stmt->execute();
+            $stmt->store_result();
         }
 
         // Regenerate CSRF token after successful action

@@ -17,20 +17,25 @@
     $title="";
     $state="";
     $taskid = "";
+    $userid = $_COOKIE['userid'];
 
     if (isset($_GET['id'])){
         $taskid = $_GET["id"];
         require_once 'fw/db.php';
         $conn = getConnection();
-        $stmt = $conn->prepare("select ID, title, state from tasks where ID = ?");
-        $stmt->bind_param("i", $taskid);
+        $stmt = $conn->prepare("select ID, title, state from tasks where ID = ? AND userID = ?");
+        $stmt->bind_param("ii", $taskid, $userid);
         $stmt->execute();
         $stmt->store_result();
         if ($stmt->num_rows > 0) {
             $stmt->bind_result($db_id, $db_title, $db_state);
             $stmt->fetch();
-            $title = $db_title;
+            require_once 'validateInput.php';
+            $title = sanitizeAndvalidateInput($db_title);
             $state = $db_state;
+        } else {
+          header('HTTP/1.1 403 Forbidden');
+          die("You do not have permission to modify this task.");
         }
     }
 

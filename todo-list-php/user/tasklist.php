@@ -13,7 +13,8 @@
     $userid = $_COOKIE['userid'];
 
     // Prepare SQL statement to retrieve user from database
-    $stmt = $conn->prepare("select ID, title, state from tasks where UserID = $userid");
+    $stmt = $conn->prepare("SELECT ID, title, state FROM tasks WHERE UserID = ?");
+    $stmt->bind_param("i", $userid);
     // Execute the statement
     $stmt->execute();
     // Store the result

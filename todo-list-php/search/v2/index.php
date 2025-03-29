@@ -5,7 +5,8 @@
     }
 
     $userid = $_GET["userid"];
-    $terms = $_GET["terms"];
+    require_once '../../validateInput.php';
+    $terms = sanitizeAndvalidateInput($_GET["terms"]);
 
     require_once '../../fw/db.php';
     $conn = getConnection();

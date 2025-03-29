@@ -43,7 +43,7 @@
     <?php
         // Fetch the result
         while ($stmtU->fetch()) {
-            echo "<tr><td>$db_id</td><td>$db_username</td><td>$db_title</td><input type='hidden' name='password' value='$db_password' /></tr>";
+            echo "<tr><td>" . htmlspecialchars($db_id) . "</td><td>" . htmlspecialchars($db_username) . "</td><td>" . htmlspecialchars($db_title) . "</td></tr>";
         }
     ?>
 </table>
